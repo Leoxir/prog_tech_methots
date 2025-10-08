@@ -1,4 +1,3 @@
-# Stage 1: build with Qt dev packages
 FROM debian:12-slim AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -8,7 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /src
 COPY . /src
 
-# If there is a .pro use qmake; otherwise try to compile all .cpp with Qt pkg-config flags
 RUN if ls *.pro 1>/dev/null 2>&1 || ls server*.pro 1>/dev/null 2>&1; then \
       qmake || true; \
       make -j$(nproc) || true; \
@@ -19,12 +17,10 @@ RUN if ls *.pro 1>/dev/null 2>&1 || ls server*.pro 1>/dev/null 2>&1; then \
       fi; \
     fi
 
-# Try to find common output names and copy to /srv_server
 RUN if [ -f ./srv_server ]; then cp ./srv_server /srv_server; fi || true
 RUN if [ -f ./server ]; then cp ./server /srv_server; fi || true
 RUN if [ -f ./bin/server ]; then cp ./bin/server /srv_server; fi || true
 
-# Stage 2: minimal runtime with required Qt libraries
 FROM debian:12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
