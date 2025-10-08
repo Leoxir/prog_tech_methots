@@ -1,4 +1,3 @@
-# Stage 1: build with Qt dev
 FROM debian:12-slim AS build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -8,7 +7,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /src
 COPY . /src
 
-# Use qmake if .pro exists, otherwise try to compile all .cpp with Qt pkg-config
 RUN if [ -f client.pro ]; then \
       qmake client.pro || true; \
       make -j$(nproc) || true; \
@@ -19,11 +17,9 @@ RUN if [ -f client.pro ]; then \
       fi; \
     fi
 
-# Try common binary names
 RUN if [ -f ./client_app ]; then cp ./client_app /client_app; fi || true
 RUN if [ -f ./client ]; then cp ./client /client_app; fi || true
 
-# Stage 2: minimal runtime
 FROM debian:12-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
